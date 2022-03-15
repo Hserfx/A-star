@@ -19,6 +19,8 @@ R = Reset
 2 -  Draw a wall
 
 3 - Choose end node
+
+4 - Find a path
 ```
 
 
