@@ -3,6 +3,7 @@ import sys
 import numpy as np
 
 
+
 rects = np.empty((12,16), dtype=object)
 
 WINDOW_WIDTH = 800
@@ -35,17 +36,17 @@ def restart():
     walled = False
 
 class Node:
-    def __init__(self, x, y, fx):
+    def __init__(self, x, y, fx, came_from = None):
         self.x = x
         self.y = y
         self.fx = fx
-        self.rect = pg.Rect(rects[self.y-1][self.x][0], rects[self.y-1][self.x][1], blocksize-2, blocksize-2)
+        self.rect = pg.Rect(rects[self.y][self.x][0], rects[self.y][self.x][1], blocksize-2, blocksize-2)
+        self.came_from = came_from
 
 def find_idx(array, value):
     i = 0
     j = 0
     for x in array[0]:
-
         for y in array:
             if value == array[j, i]:
                 return (i, j)
@@ -58,24 +59,13 @@ def check_fx(point, goal):
     return abs(point[0] - goal[0]) + abs(point[1] - goal[1])
 
 
-def reverse_path(set, start, goal):
-    path = []
-    x = start
-    while 1:
-
-        for nx, ny in [(0,1),(0,-1),(1,0),(-1,0)]:
-            if x.x+nx > 15 or x.y+ny > 11:
-                continue
-
-            fx = check_fx((x.x+nx, x.y+ny), goal)
-
-            if fx == 0:
-                return path
-
-            neighbour = Node(x.x+nx, x.y+ny, fx)
-            if neighbour in set:
-                neighbours.append(neighbour)
-
+def create_path(came_from):
+    while came_from is not None:
+        path.append(came_from)
+        pg.draw.rect(SCREEN, BLUE, came_from.rect)
+        pg.display.flip()
+        came_from = came_from.came_from
+    return path
 
 def A_Algorithm(maze, start, goal):
     closed_set = []
@@ -84,23 +74,23 @@ def A_Algorithm(maze, start, goal):
     open_set = [st]
     x = st
 
+
     while 1:
         open_set.sort(key=lambda a: a.fx)
         i = open_set[0]
         closed_set.append(i.rect)
-        pg.draw.rect(SCREEN, BLUE, i.rect)
-        pg.display.flip()
         x = i
 
         for nx, ny in [(0,1),(0,-1),(1,0),(-1,0)]:
-            if x.x+nx > 15 or x.y+ny > 11:
+
+            if x.x+nx > 15 or x.y+ny > 11 or x.y+ny < 0 or x.x < 0:
                 continue
             fx = check_fx((x.x+nx, x.y+ny), goal)
 
             if fx == 0:
-                return reverse_path(closed_set, goal, start)
+                return create_path(x)
 
-            neighbour = Node(x.x+nx, x.y+ny, fx)
+            neighbour = Node(x.x+nx, x.y+ny, fx, came_from = x)
 
 
 
@@ -174,7 +164,7 @@ if __name__ == '__main__':
                     if s.collidepoint(pos):
                         clicked_sprite = s
                     if walled:
-                        if not clicked_sprite in walls:
+                        if not clicked_sprite in walls or clicked_sprite != start:
                             walls.append(clicked_sprite)
 
         pg.display.flip()
