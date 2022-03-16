@@ -1,3 +1,5 @@
+from ast import Raise
+from cgitb import text
 import pygame as pg
 import sys
 import numpy as np
@@ -62,9 +64,8 @@ def check_fx(point, goal):
 def create_path(came_from):
     while came_from is not None:
         path.append(came_from)
-        pg.draw.rect(SCREEN, BLUE, came_from.rect)
-        pg.display.flip()
         came_from = came_from.came_from
+
     return path
 
 def A_Algorithm(maze, start, goal):
@@ -75,7 +76,7 @@ def A_Algorithm(maze, start, goal):
     x = st
 
 
-    while 1:
+    while len(open_set) > 0:
         open_set.sort(key=lambda a: a.fx)
         i = open_set[0]
         closed_set.append(i.rect)
@@ -101,6 +102,7 @@ def A_Algorithm(maze, start, goal):
 
         open_set.remove(x)
 
+    return [None]
 
 def drawGrid():
     global blocksize
@@ -112,12 +114,14 @@ def drawGrid():
             rect = pg.Rect(x, y, blocksize-2, blocksize-2)
             if rect == clicked_sprite and not start or rect == start:
                 pg.draw.rect(SCREEN, RED, rect)
-            elif rect == clicked_sprite and rect != start or rect == end:
+            elif rect == clicked_sprite and rect != start and not walled or rect == end:
                 pg.draw.rect(SCREEN, GREEN, rect)
             elif rect in path:
                 pg.draw.rect(SCREEN, BLUE, rect)
             elif rect in walls:
                 pg.draw.rect(SCREEN, GRAY_2, rect)
+            elif path == [None]:
+                SCREEN.blit(path_text,(0, 0))
             else:
                 pg.draw.rect(SCREEN, BLACK, rect)
 
@@ -132,8 +136,11 @@ def drawGrid():
 
 if __name__ == '__main__':
     pg.init()
+    main_font = pg.font.SysFont('Comic Sans MS', 30)
+    path_text = main_font.render('End node is not accessible', False, RED)
     SCREEN = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     CLOCK = pg.time.Clock()
+    CLOCK.tick(60)
     SCREEN.fill(GRAY)
 
     while True:
@@ -165,6 +172,16 @@ if __name__ == '__main__':
                         clicked_sprite = s
                     if walled:
                         if not clicked_sprite in walls or clicked_sprite != start:
+
                             walls.append(clicked_sprite)
+
+            elif pg.mouse.get_pressed()[2] and not end:
+                pos = pg.mouse.get_pos()
+                for s in sprites:
+                    if s.collidepoint(pos):
+                        clicked_sprite = s
+                    
+                    if clicked_sprite in walls:
+                        walls.remove(clicked_sprite)
 
         pg.display.flip()
