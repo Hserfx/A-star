@@ -1,13 +1,18 @@
+from ast import Raise
+from cgitb import text
 import pygame as pg
 import sys
 import numpy as np
 
+x_size = 32
+y_size = 24
 
-
-rects = np.empty((12,16), dtype=object)
+rects = np.empty((y_size,x_size), dtype=object)
 
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
+
+blocksize = WINDOW_WIDTH//x_size
 
 GRAY = (60, 60, 60)
 GRAY_2 = (100, 100, 100)
@@ -62,12 +67,12 @@ def check_fx(point, goal):
 def create_path(came_from):
     while came_from is not None:
         path.append(came_from)
-        pg.draw.rect(SCREEN, BLUE, came_from.rect)
-        pg.display.flip()
         came_from = came_from.came_from
+
     return path
 
 def A_Algorithm(maze, start, goal):
+
     closed_set = []
     optimal = check_fx(start, goal)
     st = Node(start[0], start[1], optimal)
@@ -75,16 +80,20 @@ def A_Algorithm(maze, start, goal):
     x = st
 
 
-    while 1:
+    while len(open_set) > 0:
+        exist = False
         open_set.sort(key=lambda a: a.fx)
         i = open_set[0]
         closed_set.append(i.rect)
+        pg.draw.rect(SCREEN, BLUE, i.rect)
+        pg.display.update(i.rect)
         x = i
+        print(len(open_set))
 
         for nx, ny in [(0,1),(0,-1),(1,0),(-1,0)]:
-
-            if x.x+nx > 15 or x.y+ny > 11 or x.y+ny < 0 or x.x < 0:
+            if x.x+nx > x_size-1 or x.y+ny > y_size-1 or x.y+ny < 0 or x.x < 0:
                 continue
+
             fx = check_fx((x.x+nx, x.y+ny), goal)
 
             if fx == 0:
@@ -94,30 +103,42 @@ def A_Algorithm(maze, start, goal):
 
 
 
-            if neighbour in open_set or neighbour.rect in walls or neighbour.rect in closed_set:
+
+
+            if neighbour.rect in walls or neighbour.rect in closed_set:
                 continue
 
-            open_set.append(neighbour)
+            for n in open_set:
+                if n.rect == neighbour.rect:
+                    exist = True
+
+            if not exist:
+                open_set.append(neighbour)
 
         open_set.remove(x)
 
+    return [None]
 
 def drawGrid():
     global blocksize
-    blocksize = 50
+    SCREEN.fill(GRAY)
+
     x_c = 0
     y_c = 0
-    for x in range(0, WINDOW_WIDTH, blocksize):
-        for y in range(0, WINDOW_HEIGHT, blocksize):
-            rect = pg.Rect(x, y, blocksize-2, blocksize-2)
+    for x in range(WINDOW_WIDTH // blocksize):
+        for y in range(WINDOW_HEIGHT // blocksize):
+            rect = pg.Rect(x*blocksize, y*blocksize, blocksize-2, blocksize-2)
             if rect == clicked_sprite and not start or rect == start:
                 pg.draw.rect(SCREEN, RED, rect)
-            elif rect == clicked_sprite and rect != start or rect == end:
+            elif rect == clicked_sprite and rect != start and not walled or rect == end:
                 pg.draw.rect(SCREEN, GREEN, rect)
             elif rect in path:
                 pg.draw.rect(SCREEN, BLUE, rect)
             elif rect in walls:
                 pg.draw.rect(SCREEN, GRAY_2, rect)
+            elif path == [None]:
+                SCREEN.blit(path_text,(0, 0))
+                pg.draw.rect(SCREEN, BLACK, rect)
             else:
                 pg.draw.rect(SCREEN, BLACK, rect)
 
@@ -132,18 +153,21 @@ def drawGrid():
 
 if __name__ == '__main__':
     pg.init()
+    main_font = pg.font.SysFont('Comic Sans MS', 30)
+    path_text = main_font.render('End node is not accessible', False, RED)
     SCREEN = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     CLOCK = pg.time.Clock()
-    SCREEN.fill(GRAY)
+
 
     while True:
+        CLOCK.tick(200)
+        print(CLOCK.get_fps())
         drawGrid()
         for event in pg.event.get():
-
             if event.type == pg.QUIT:
                 pg.quit()
                 sys.exit()
-            if event.type == pg.KEYDOWN:
+            elif event.type == pg.KEYDOWN:
                 if event.key == 13:
                     if not start:
                         start = clicked_sprite
@@ -157,14 +181,24 @@ if __name__ == '__main__':
                 if event.key == 114:
                     restart()
 
-            if pg.mouse.get_pressed()[0] and not end:
+            elif pg.mouse.get_pressed()[0] and not end:
                 pos = pg.mouse.get_pos()
-
+                clicked_sprite = ''
                 for s in sprites:
                     if s.collidepoint(pos):
                         clicked_sprite = s
-                    if walled:
-                        if not clicked_sprite in walls or clicked_sprite != start:
-                            walls.append(clicked_sprite)
+                        if walled:
+                            if not clicked_sprite in walls and clicked_sprite != start:
 
-        pg.display.flip()
+                                walls.append(clicked_sprite)
+                                break
+
+            elif pg.mouse.get_pressed()[2] and not end:
+                pos = pg.mouse.get_pos()
+                print(pos)
+                for s in walls:
+                    print(s)
+                    if s.collidepoint(pos):
+                        walls.remove(s)
+
+        pg.display.update()
