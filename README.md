@@ -3,6 +3,13 @@ A* pathfinder algorithm in python with interface.
 
 <i font-size>Just a little project for fun, messy code (updated after 2 years).</i>
 
+# REQUIREMENTS
+python 3.8+
+
+Packages:
+numpy
+pygame
+
 ## CONTROLS
 ```
 LMB = Choose node
