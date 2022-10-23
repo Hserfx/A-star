@@ -7,7 +7,7 @@ A* pathfinder algorithm in python with interface.
 python 3.8+
 
 Packages:
-numpy\n
+numpy,
 pygame
 
 ## CONTROLS
