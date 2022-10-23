@@ -1,5 +1,3 @@
-from ast import Raise
-from cgitb import text
 import pygame as pg
 import sys
 import numpy as np
@@ -81,10 +79,7 @@ def A_Algorithm(maze, start, goal):
 
 
     while len(open_set) > 0:
-<<<<<<< HEAD
         exist = False
-=======
->>>>>>> bd3539a7e34657ab71d81ec6adb743a950e7c147
         open_set.sort(key=lambda a: a.fx)
         i = open_set[0]
         closed_set.append(i.rect)
@@ -94,11 +89,7 @@ def A_Algorithm(maze, start, goal):
         print(len(open_set))
 
         for nx, ny in [(0,1),(0,-1),(1,0),(-1,0)]:
-<<<<<<< HEAD
-            if x.x+nx > x_size-1 or x.y+ny > y_size-1 or x.y+ny < 0 or x.x < 0:
-=======
             if x.x+nx > x_size-1 or x.y+ny > y_size or x.y+ny < 0 or x.x < 0:
->>>>>>> bd3539a7e34657ab71d81ec6adb743a950e7c147
                 continue
 
             fx = check_fx((x.x+nx, x.y+ny), goal)
@@ -128,12 +119,7 @@ def A_Algorithm(maze, start, goal):
 
 def drawGrid():
     global blocksize
-<<<<<<< HEAD
-    SCREEN.fill(GRAY)
-
-=======
  
->>>>>>> bd3539a7e34657ab71d81ec6adb743a950e7c147
     x_c = 0
     y_c = 0
     for x in range(WINDOW_WIDTH // blocksize):
@@ -149,10 +135,6 @@ def drawGrid():
                 pg.draw.rect(SCREEN, GRAY_2, rect)
             elif path == [None]:
                 SCREEN.blit(path_text,(0, 0))
-<<<<<<< HEAD
-                pg.draw.rect(SCREEN, BLACK, rect)
-=======
->>>>>>> bd3539a7e34657ab71d81ec6adb743a950e7c147
             else:
                 pg.draw.rect(SCREEN, BLACK, rect)
 
